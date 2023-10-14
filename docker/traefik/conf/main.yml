@@ -1,5 +1,15 @@
 http:
   routers:
+    cdn:
+      rule: Host(`cdn.{{env "BASE_DOMAIN"}}`)
+      service: cdn
+      tls:
+        certresolver: cfresolver
+    cdn-console:
+      rule: Host(`cdn-console.{{env "BASE_DOMAIN"}}`)
+      service: cdn-console
+      tls:
+        certresolver: cfresolver
     app-backend:
       rule: Host(`backend.{{env "BASE_DOMAIN"}}`)
       service: app-backend
@@ -10,8 +20,21 @@ http:
       service: supabase-studio
       tls:
         certresolver: cfresolver
+    supabase-storage:
+      rule: Host(`storage.{{env "BASE_DOMAIN"}}`)
+      service: supabase-storage
+      tls:
+        certresolver: cfresolver
 
   services:
+    cdn:
+      loadBalancer:
+        servers:
+          - url: "http://minio:9000"
+    cdn-console:
+      loadBalancer:
+        servers:
+          - url: "http://minio:9090"
     app-backend:
       loadBalancer:
         servers:
@@ -20,3 +43,7 @@ http:
       loadBalancer:
         servers:
           - url: "http://supabase-kong:8000"
+    supabase-storage:
+      loadBalancer:
+        servers:
+          - url: "http://supabase-storage:5000"

@@ -11,6 +11,8 @@ endef
 # contoh:
 # make supabase c=config
 # make supabase c='up -d'
+minio:
+	$(call docker_compose_cmd,minio,$(c))
 supabase:
 	$(call docker_compose_cmd,supabase,$(c))
 traefik:
