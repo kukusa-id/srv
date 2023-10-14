@@ -6,6 +6,9 @@
 
 version: "3.8"
 
+include:
+  - ../docker-compose.yml
+
 services:
 
   studio:
@@ -45,7 +48,9 @@ services:
       NEXT_ANALYTICS_BACKEND_PROVIDER: postgres
       # Uncomment to use Big Query backend for analytics
       # NEXT_ANALYTICS_BACKEND_PROVIDER: bigquery
-
+    networks:
+      - backend
+  
   kong:
     container_name: supabase-kong
     image: kong:2.8.1
@@ -73,6 +78,8 @@ services:
     volumes:
       # https://github.com/supabase/supabase/issues/12661
       - ./volumes/api/kong.yml:/home/kong/temp.yml:ro
+    networks:
+      - backend
 
   auth:
     container_name: supabase-auth
@@ -132,6 +139,8 @@ services:
 
       GOTRUE_EXTERNAL_PHONE_ENABLED: ${ENABLE_PHONE_SIGNUP}
       GOTRUE_SMS_AUTOCONFIRM: ${ENABLE_PHONE_AUTOCONFIRM}
+    networks:
+      - backend
 
   rest:
     container_name: supabase-rest
@@ -152,6 +161,8 @@ services:
       PGRST_APP_SETTINGS_JWT_SECRET: ${JWT_SECRET}
       PGRST_APP_SETTINGS_JWT_EXP: ${JWT_EXPIRY}
     command: "postgrest"
+    networks:
+      - backend
 
   realtime:
     container_name: realtime-dev.supabase-realtime
@@ -193,6 +204,9 @@ services:
     command: >
       sh -c "/app/bin/migrate && /app/bin/realtime eval 'Realtime.Release.seeds(Realtime.Repo)' && /app/bin/server"
 
+    networks:
+      - backend
+  
   storage:
     container_name: supabase-storage
     image: supabase/storage-api:v0.40.4
@@ -236,6 +250,9 @@ services:
     volumes:
       - ${W_VOLUMES_PATH}/supabase/storage:/var/lib/storage:z
 
+    networks:
+      - backend
+
   imgproxy:
     container_name: supabase-imgproxy
     image: darthsim/imgproxy:v3.8.0
@@ -251,6 +268,8 @@ services:
       IMGPROXY_ENABLE_WEBP_DETECTION: ${IMGPROXY_ENABLE_WEBP_DETECTION}
     volumes:
       - ${W_VOLUMES_PATH}/supabase/storage:/var/lib/storage:z
+    networks:
+      - backend
 
   meta:
     container_name: supabase-meta
@@ -269,6 +288,8 @@ services:
       PG_META_DB_NAME: ${POSTGRES_DB}
       PG_META_DB_USER: supabase_admin
       PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - backend
 
   functions:
     container_name: supabase-edge-functions
@@ -291,6 +312,8 @@ services:
       - start
       - --main-service
       - /home/deno/functions/main
+    networks:
+      - backend
 
   analytics:
     container_name: supabase-analytics
@@ -341,6 +364,8 @@ services:
                   ./logflare start --sname logflare
                   EOF
                   `
+    networks:
+      - backend
 
   # Comment out everything below this point if you are using an external Postgres database
   db:
@@ -382,6 +407,8 @@ services:
       - ${W_VOLUMES_PATH}/supabase/db-data:/var/lib/postgresql/data:Z
       # Changes required for Analytics support
       - ./volumes/db/logs.sql:/docker-entrypoint-initdb.d/migrations/99-logs.sql:Z
+    networks:
+      - backend
 
   vector:
     container_name: supabase-vector
@@ -405,3 +432,5 @@ services:
       - ${DOCKER_SOCKET_LOCATION}:/var/run/docker.sock:ro
 
     command: [ "--config", "etc/vector/vector.yml" ]
+    networks:
+      - backend
