@@ -17,3 +17,11 @@ traefik:
 	$(call docker_compose_cmd,traefik,$(c))
 app-backend:
 	$(call docker_compose_cmd,apps/backend,$(c))
+start:
+	make supabase c='up -d' && \
+	make app-backend c='up -d' && \
+	make traefik c='up -d'
+down:
+	make traefik c='down -v' && \
+	make app-backend c='down -v' && \
+	make supabase c='down -v'
