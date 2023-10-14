@@ -5,9 +5,18 @@ http:
       service: app-backend
       tls:
         certresolver: cfresolver
+    supabase-studio:
+      rule: Host(`supabase-studio.{{env "BASE_DOMAIN"}}`)
+      service: supabase-studio
+      tls:
+        certresolver: cfresolver
 
   services:
     app-backend:
       loadBalancer:
         servers:
           - url: "http://app-backend:80"
+    supabase-studio:
+      loadBalancer:
+        servers:
+          - url: "http://supabase-kong:8000"
