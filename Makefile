@@ -13,3 +13,7 @@ endef
 # make supabase c='up -d'
 supabase:
 	$(call docker_compose_cmd,supabase,$(c))
+traefik:
+	$(call docker_compose_cmd,traefik,$(c))
+app-backend:
+	$(call docker_compose_cmd,apps/backend,$(c))

@@ -1,0 +1,13 @@
+http:
+  routers:
+    app-backend:
+      rule: Host(`backend.{{env "BASE_DOMAIN"}}`)
+      service: app-backend
+      tls:
+        certresolver: cfresolver
+
+  services:
+    app-backend:
+      loadBalancer:
+        servers:
+          - url: "http://app-backend:80"
