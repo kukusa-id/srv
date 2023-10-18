@@ -261,6 +261,7 @@ services:
       timeout: 5s
       interval: 5s
       retries: 3
+    restart: unless-stopped
     environment:
       IMGPROXY_BIND: ":5001"
       IMGPROXY_LOCAL_FILESYSTEM_ROOT: /
@@ -427,6 +428,7 @@ services:
       timeout: 5s
       interval: 5s
       retries: 3
+    restart: unless-stopped
     volumes:
       - ./volumes/logs/vector.yml:/etc/vector/vector.yml:ro
       - ${DOCKER_SOCKET_LOCATION}:/var/run/docker.sock:ro
