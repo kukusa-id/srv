@@ -1,30 +1,32 @@
+{{define "tlsbase"}}
+  {{ if eq (env "SRV_ENV") "production" }}
+      tls:
+        certresolver: cfresolver
+  {{end}}
+{{end}}
+
 http:
   routers:
     cdn:
       rule: Host(`cdn.{{env "BASE_DOMAIN"}}`)
       service: cdn
-      tls:
-        certresolver: cfresolver
+      {{template "tlsbase"}}
     cdn-console:
       rule: Host(`cdn-console.{{env "BASE_DOMAIN"}}`)
       service: cdn-console
-      tls:
-        certresolver: cfresolver
+      {{template "tlsbase"}}
     app-backend:
       rule: Host(`backend.{{env "BASE_DOMAIN"}}`)
       service: app-backend
-      tls:
-        certresolver: cfresolver
+      {{template "tlsbase"}}
     supabase-studio:
       rule: Host(`supabase-studio.{{env "BASE_DOMAIN"}}`)
       service: supabase-studio
-      tls:
-        certresolver: cfresolver
+      {{template "tlsbase"}}
     supabase-storage:
       rule: Host(`storage.{{env "BASE_DOMAIN"}}`)
       service: supabase-storage
-      tls:
-        certresolver: cfresolver
+      {{template "tlsbase"}}
 
   services:
     cdn:

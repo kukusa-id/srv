@@ -6,12 +6,9 @@
 
 version: "3.8"
 
-include:
-  - ../docker-compose.yml
-
 services:
 
-  studio:
+  supabase-studio:
     container_name: supabase-studio
     image: supabase/studio:20230921-d657f29
     restart: unless-stopped
@@ -27,7 +24,7 @@ services:
       interval: 5s
       retries: 3
     depends_on:
-      analytics:
+      supabase-analytics:
         condition: service_healthy
     environment:
       STUDIO_PG_META_URL: http://meta:8080
@@ -51,7 +48,7 @@ services:
     networks:
       - backend
   
-  kong:
+  supabase-kong:
     container_name: supabase-kong
     image: kong:2.8.1
     restart: unless-stopped
@@ -61,7 +58,7 @@ services:
       - ${KONG_HTTP_PORT}:8000/tcp
       - ${KONG_HTTPS_PORT}:8443/tcp
     depends_on:
-      analytics:
+      supabase-analytics:
         condition: service_healthy
     environment:
       KONG_DATABASE: "off"
@@ -81,14 +78,14 @@ services:
     networks:
       - backend
 
-  auth:
+  supabase-auth:
     container_name: supabase-auth
     image: supabase/gotrue:v2.99.0
     depends_on:
-      db:
+      supabase-db:
         # Disable this if you are using an external Postgres database
         condition: service_healthy
-      analytics:
+      supabase-analytics:
         condition: service_healthy
     healthcheck:
       test:
@@ -142,14 +139,14 @@ services:
     networks:
       - backend
 
-  rest:
+  supabase-rest:
     container_name: supabase-rest
     image: postgrest/postgrest:v11.2.0
     depends_on:
-      db:
+      supabase-db:
         # Disable this if you are using an external Postgres database
         condition: service_healthy
-      analytics:
+      supabase-analytics:
         condition: service_healthy
     restart: unless-stopped
     environment:
@@ -164,14 +161,14 @@ services:
     networks:
       - backend
 
-  realtime:
+  supabase-realtime:
     container_name: realtime-dev.supabase-realtime
     image: supabase/realtime:v2.10.1
     depends_on:
-      db:
+      supabase-db:
         # Disable this if you are using an external Postgres database
         condition: service_healthy
-      analytics:
+      supabase-analytics:
         condition: service_healthy
     healthcheck:
       test:
@@ -207,16 +204,16 @@ services:
     networks:
       - backend
   
-  storage:
+  supabase-storage:
     container_name: supabase-storage
     image: supabase/storage-api:v0.40.4
     depends_on:
-      db:
+      supabase-db:
         # Disable this if you are using an external Postgres database
         condition: service_healthy
-      rest:
+      supabase-rest:
         condition: service_started
-      imgproxy:
+      supabase-imgproxy:
         condition: service_started
     healthcheck:
       test:
@@ -248,12 +245,12 @@ services:
       ENABLE_IMAGE_TRANSFORMATION: "true"
       IMGPROXY_URL: http://imgproxy:5001
     volumes:
-      - ${W_VOLUMES_PATH}/supabase/storage:/var/lib/storage:z
+      - ${SRV_VOLUMES_PATH}/supabase/storage:/var/lib/storage:z
 
     networks:
       - backend
 
-  imgproxy:
+  supabase-imgproxy:
     container_name: supabase-imgproxy
     image: darthsim/imgproxy:v3.8.0
     healthcheck:
@@ -268,18 +265,18 @@ services:
       IMGPROXY_USE_ETAG: "true"
       IMGPROXY_ENABLE_WEBP_DETECTION: ${IMGPROXY_ENABLE_WEBP_DETECTION}
     volumes:
-      - ${W_VOLUMES_PATH}/supabase/storage:/var/lib/storage:z
+      - ${SRV_VOLUMES_PATH}/supabase/storage:/var/lib/storage:z
     networks:
       - backend
 
-  meta:
+  supabase-meta:
     container_name: supabase-meta
     image: supabase/postgres-meta:v0.68.0
     depends_on:
-      db:
+      supabase-db:
         # Disable this if you are using an external Postgres database
         condition: service_healthy
-      analytics:
+      supabase-analytics:
         condition: service_healthy
     restart: unless-stopped
     environment:
@@ -292,12 +289,12 @@ services:
     networks:
       - backend
 
-  functions:
+  supabase-functions:
     container_name: supabase-edge-functions
     image: supabase/edge-runtime:v1.18.1
     restart: unless-stopped
     depends_on:
-      analytics:
+      supabase-analytics:
         condition: service_healthy
     environment:
       JWT_SECRET: ${JWT_SECRET}
@@ -316,7 +313,7 @@ services:
     networks:
       - backend
 
-  analytics:
+  supabase-analytics:
     container_name: supabase-analytics
     image: supabase/logflare:1.4.0
     healthcheck:
@@ -326,7 +323,7 @@ services:
       retries: 10
     restart: unless-stopped
     depends_on:
-      db:
+      supabase-db:
         # Disable this if you are using an external Postgres database
         condition: service_healthy
     # Uncomment to use Big Query backend for analytics
@@ -369,7 +366,7 @@ services:
       - backend
 
   # Comment out everything below this point if you are using an external Postgres database
-  db:
+  supabase-db:
     container_name: supabase-db
     image: supabase/postgres:15.1.0.117
     healthcheck:
@@ -378,7 +375,7 @@ services:
       timeout: 5s
       retries: 10
     depends_on:
-      vector:
+      supabase-vector:
         condition: service_healthy
     command:
       - postgres
@@ -405,13 +402,13 @@ services:
       # Must be superuser to alter reserved role
       - ./volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
       # PGDATA directory is persisted between restarts
-      - ${W_VOLUMES_PATH}/supabase/db-data:/var/lib/postgresql/data:Z
+      - ${SRV_VOLUMES_PATH}/supabase/db-data:/var/lib/postgresql/data:Z
       # Changes required for Analytics support
       - ./volumes/db/logs.sql:/docker-entrypoint-initdb.d/migrations/99-logs.sql:Z
     networks:
       - backend
 
-  vector:
+  supabase-vector:
     container_name: supabase-vector
     image: timberio/vector:0.28.1-alpine
     healthcheck:

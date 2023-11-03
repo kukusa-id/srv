@@ -157,6 +157,7 @@ providers:
   #   defaultRule: Host(`{{ normalize .Name }}.docker.localhost`, `{{ normalize .Name }}.{{env "BASE_DOMAIN_LOCAL"}}`)
   file:
     directory: /traefik
+    watch: true
 certificatesresolvers:
   cfresolver:
     acme:

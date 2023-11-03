@@ -1,10 +1,7 @@
 version: "3.8"
-
 include:
-  - './supabase/docker-compose.yml'
   - './minio/docker-compose.yml'
   - './traefik/docker-compose.yml'
-
 networks:
   backend:
     name: backend

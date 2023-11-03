@@ -1,7 +1,3 @@
-version: "3.8"
-
-include:
-  - ../docker-compose.yml
 
 services:
   minio:
@@ -12,8 +8,8 @@ services:
     command: -c 'mkdir -p /data/main && minio server /data --console-address ":9090"'
     environment:
       - CONSOLE_SECURE_TLS_REDIRECT="off"
-      - MINIO_ACCESS_KEY
-      - MINIO_SECRET_KEY
+      - MINIO_ROOT_USER
+      - MINIO_ROOT_PASSWORD
     healthcheck:
       test: ["CMD", "curl", "-f", "http://minio:9000/minio/health/live"]
       interval: 30s
@@ -22,6 +18,6 @@ services:
     restart: unless-stopped
     hostname: server
     volumes:
-      - ${W_VOLUMES_PATH}/minio/data:/data
+      - ${SRV_VOLUMES_PATH}/minio/data:/data
     networks:
       - backend
